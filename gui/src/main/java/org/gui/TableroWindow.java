@@ -175,14 +175,14 @@ public class TableroWindow {
 				Random r = new Random();
 				int i = r.nextInt(4);
 				String suerte = suertes.get(i);
-				lblDescripcion.setText(suerte);
+				lblDescripcion.setText("<html>"+suerte+"</html>");
 			}
 			if(acciones.contains("DESTINO")){
 				btnPasar.setEnabled(true);
 				Random r = new Random();
 				int i = r.nextInt(4);
 				String destino = destinos.get(i);
-				lblDescripcion.setText(destino);
+				lblDescripcion.setText("<html>"+destino+"</html>");
 			}
 		}
 		
@@ -194,18 +194,9 @@ public class TableroWindow {
 		getPanel(posicion).lblDueño.setText(jugador.getNombre());
 		getPanel(posicion).lblDueño.setVisible(true);
 		
-		System.out.println("#1 - "+jugador.getNombre() + ", $"+jugador.getDinero());
-		System.out.println("#2 - "+this.jugador.getNombre() + ", $"+this.jugador.getDinero());
-		//System.out.println(jugador.getNombre() + " - " + this.jugador.getNombre());
-		
 		if(jugador.getNombre().equals(this.jugador.getNombre())){
 			this.jugador.setDinero(this.jugador.getDinero()-100);
 		}
-		
-		System.out.println("#3 - "+jugador.getNombre() + ", $"+jugador.getDinero());
-		System.out.println("#4 - "+this.jugador.getNombre() + ", $"+this.jugador.getDinero());
-		
-		System.out.println("----------");
 		
 		mostrarDatos();
 		pasarTurno(jugador);

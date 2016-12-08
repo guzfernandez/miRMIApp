@@ -48,7 +48,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	}
 	
 	private void partidaCountdown(){
-		if(darJugadoresEnPartida().size() >= 1){
+		if(darJugadoresEnPartida().size() >= 2){
 			if(timerCorriendo && timer != null){
 				timer.cancel();
 			}
@@ -99,15 +99,10 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		}
 	}
 	
-	private int i = 0;
-	
 	public void agregarObserver(Observer observer) {
 		if(!observers.contains(observer)){
 			observers.add(observer);
-			
 			actulizarUI();
-			i++;
-			System.out.println("Observer: #"+i+" - " +observer.toString());
 		}
 	}
 
@@ -121,8 +116,6 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		posicionesJugadores[1][0] = 0;
 		posicionesJugadores[2][0] = 0;
 		posicionesJugadores[3][0] = 0;
-		
-		System.out.println("Observers: "+observers.size());
 		
 		for(Observer o : observers){
 			try {
