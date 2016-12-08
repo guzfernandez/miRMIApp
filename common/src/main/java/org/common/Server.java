@@ -12,4 +12,5 @@ public interface Server extends Remote {
 	public PartidaController getPartidaController() throws RemoteException;
 	public int tirarDado() throws RemoteException;
 	public void setJugador(Jugador jugador) throws RemoteException;
+	public void pagarMulta(Jugador dueño, int cantidad) throws RemoteException;
 }

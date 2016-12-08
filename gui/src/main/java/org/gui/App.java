@@ -4,7 +4,9 @@ import java.awt.EventQueue;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
+import org.common.Jugada;
 import org.common.Jugador;
 import org.common.Observer;
 import org.common.Server;
@@ -39,8 +41,6 @@ public class App extends UnicastRemoteObject implements Observer{
 			}
 		});
 		
-		// Siempre devolver cosas que la UI conozca (inferfaces)
-		
 	}
 	
     public void sendMessage(String message) throws RemoteException {
@@ -55,12 +55,6 @@ public class App extends UnicastRemoteObject implements Observer{
 	public void actulizarTimer(int segundo) throws RemoteException {
 		window.actualizarTimer(segundo);
 	}
-
-	/*public void cambiarTurno(Jugador jugadorRecibeTurno) throws RemoteException {
-		window.cambiarTurno(this.jugador, jugadorRecibeTurno);
-	}*/
-	
-	
 
 	public void empezarPartida(Jugador jugadorRecibeTurno) throws RemoteException {
 		window.empezarPartida(this.jugador, jugadorRecibeTurno);
@@ -83,6 +77,18 @@ public class App extends UnicastRemoteObject implements Observer{
 
 	public void cambiarTurno(int posJugador, Jugador jugador) throws RemoteException {
 		window.cambiarTurno(posJugador, this.jugador, jugador);
+	}
+
+	public void comprarPropiedad(Jugador jugador, int posicion) throws RemoteException {
+		window.comprarPropiedad(jugador, posicion);
+	}
+
+	public void acciones(Jugador jugador, List<String> acciones) throws RemoteException {
+		window.mostrarOpciones(jugador, acciones);
+	}
+
+	public void pagarMulta(Jugador dueño, int cantidad) throws RemoteException {
+		window.pagarMulta(dueño, cantidad);
 	}
 	
 }

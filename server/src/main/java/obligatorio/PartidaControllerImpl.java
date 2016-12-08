@@ -1,6 +1,5 @@
 package obligatorio;
 
-import java.io.PushbackReader;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -8,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.common.Jugada;
 import org.common.Jugador;
 import org.common.Observer;
@@ -17,9 +14,7 @@ import org.common.PartidaController;
 
 public class PartidaControllerImpl extends UnicastRemoteObject implements PartidaController, Serializable{
 	
-	private List<Observer> observers; 
-	//private Partida partida = new Partida();
-	//private Jugador jugador;
+	private List<Observer> observers;
 	private int[][] posicionesJugadores;
 	private Partida partida;
 	private static PartidaControllerImpl partidaInstance;
@@ -39,34 +34,14 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	
 	public PartidaControllerImpl() throws RemoteException {
 		super();
-		System.out.println("Partida impl creada");
-		//partidas = new ArrayList<Partida>();
 		partida = new Partida();
 		observers = new ArrayList<Observer>();
 	}
 	
 	public void agregarJugador(Jugador jugador) {
-		//partida.agregarJugador(jugador);
-		
-		/*if(partidas.isEmpty() || isFull(partidas.get(partidas.size()-1))){
-			partidas.add(new Partida());
-		}
-		partidas.get(partidas.size()-1).agregarJugador(jugador);*/
-		
 		partida.agregarJugador(jugador);
 		
-		/*int i = 0;
-		while(i < partidas.size()){
-			if(!isFull(partidas.get(i))){
-				partidas.get(i).agregarJugador(jugador);
-				i = partidas.size();
-			}
-			i++;
-		}*/
-		
 		System.out.println("Jugadores: "+darJugadoresEnPartida().size());
-		
-		// Actualizar UI
 		
 		actulizarUI();
 		partidaCountdown();
@@ -124,30 +99,21 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		}
 	}
 	
-	/*private boolean isFull(Partida partida){
-		return partida.darJugadoresEnPartida().size() == 4;
-	}*/
+	private int i = 0;
 	
 	public void agregarObserver(Observer observer) {
-		observers.add(observer);
-		actulizarUI();
+		if(!observers.contains(observer)){
+			observers.add(observer);
+			
+			actulizarUI();
+			i++;
+			System.out.println("Observer: #"+i+" - " +observer.toString());
+		}
 	}
 
 	public List<Jugador> darJugadoresEnPartida() {
 		return partida.darJugadoresEnPartida();	// Cambiar esto despues
 	}
-	
-	public Jugada accion(String accion) throws RemoteException {
-		return null;
-	}
-
-	/*public int[][] getPosicionesJugadores() {
-		return posicionesJugadores;
-	}
-
-	public void setPosicionesJugadores(int[][] posicionesJugadores) {
-		this.posicionesJugadores = posicionesJugadores;
-	}*/
 	
 	public void empezarPartida() throws RemoteException {
 		posicionesJugadores = new int[4][1];
@@ -155,6 +121,9 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		posicionesJugadores[1][0] = 0;
 		posicionesJugadores[2][0] = 0;
 		posicionesJugadores[3][0] = 0;
+		
+		System.out.println("Observers: "+observers.size());
+		
 		for(Observer o : observers){
 			try {
 				o.empezarPartida(partida.darJugadoresEnPartida().get(0));
@@ -177,15 +146,62 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	public void cambiarTurno(int jugPos) throws RemoteException {//JugPos: 1, Size: 2, pos: 0
 		List<Jugador> jugadores = partida.darJugadoresEnPartida();
 		int pos = jugPos+1;
+		
 		if(jugadores.size() <= pos){
 			pos = 0;
 		}
-		System.out.println("JugPos: "+jugPos + ", Size: "+jugadores.size() + ", pos: "+pos);
-		System.out.println("Turno: "+jugadores.get(pos).getNombre());
 		
 		for(Observer o : observers){
 			try {
 				o.cambiarTurno(pos, jugadores.get(pos));
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void comprarPropiedad(Jugador jugador, int posicion) throws RemoteException {
+		for(Observer o : observers){
+			try {
+				o.comprarPropiedad(jugador, posicion);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void accion(Jugador jugador, String accion, boolean dueño) throws RemoteException {
+		List<String> acciones = new ArrayList<String>();
+		
+		if(accion.equals("INICIO")){
+			acciones.add("PASAR");
+			acciones.add("RECOMPENSA");	// +$100
+		}
+		else if(accion.equals("SERVICIO") || accion.equals("PROPIEDAD")){
+			if(dueño){
+				acciones.add("MULTA");
+			}
+			else{
+				acciones.add("COMPRAR");
+				acciones.add("PASAR");
+			}
+		}
+		else if(accion.equals("CARCEL") || accion.equals("LIBRE")){
+			acciones.add("PASAR");
+		}
+		else if(accion.equals("DESTINO")){
+			acciones.add("DESTINO");
+		}
+		else if(accion.equals("POLICIA")){
+			acciones.add("CARCEL");
+		}
+		else if(accion.equals("SUERTE")){
+			acciones.add("SUERTE");
+		}
+		
+		for(Observer o : observers){
+			try {
+				o.acciones(jugador, acciones);
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}

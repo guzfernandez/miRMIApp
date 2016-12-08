@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
 
@@ -23,11 +24,16 @@ public class TableroWindow {
 	private Server server;
 	private List<Jugador> jugadores;
 	private int posicion;
+	private boolean carcel = false;
+	private int intento = 0;
+	private List<String> suertes = new ArrayList<String>();
+	private List<String> destinos = new ArrayList<String>();
 	private int posAnterior = -1;
 	private CasillaTipo[][] posiciones;
-	private JLabel lblJp_1, lblJp_2, lblJp_3, lblJp_4, lblEsperando, lblTurno;
+	private JLabel lblJp_1, lblJp_2, lblJp_3, lblJp_4, lblEsperando, lblTurno, lblDinero, lblDescripcion;
 	private JButton btnTirarDado, btnComprar, btnPasar;
 	private CasillaPanel panel, panel_1, panel_2, panel_3, panel_4, panel_5, panel_6, panel_7, panel_8, panel_9, panel_10, panel_11, panel_12, panel_13, panel_14, panel_15;
+	private JButton btnSalir;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -48,6 +54,7 @@ public class TableroWindow {
 		posiciones = new CasillaTipo[16][1];
 		initialize();
 		llenarPosiciones();
+		llenarListas();
 	}
 
 	public void setServer(Server server) {
@@ -63,55 +70,182 @@ public class TableroWindow {
 	}
 	
 	public void updatePositions(int dado){
-		int aux = posicion+dado;
-		if(aux > 15){
-			posicion = aux-16;
+		if(!carcel){
+			int aux = posicion+dado;
+			if(aux > 15){
+				posicion = aux-16;
+				this.jugador.setDinero(this.jugador.getDinero()+200);
+				mostrarDatos();
+			}
+			else{
+				posicion += dado;
+			}
 		}
-		else{
-			posicion += dado;
-		}
+		
 		try {
 			server.getPartidaController().actualizarPosicionJugador(posAnterior, getJugadorPos(jugador)+1, posicion);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-		mostrarOpciones(posAnterior, getJugadorPos(jugador), posicion);
+		getOpciones(posAnterior, getJugadorPos(jugador), posicion);
 	}
 	
-	private void mostrarOpciones(int posAnterior, int jugPos, int posicion){
+	private void getOpciones(int posAnterior, int jugPos, int posicion){
 		getPanel(posAnterior).getLabel(jugPos+1).setVisible(false);
 		getPanel(posicion).getLabel(jugPos+1).setVisible(true);
 		this.posAnterior = posicion;
 		
+		CasillaTipo tipo = null;
+		
 		if(posiciones[posicion][0] == CasillaTipo.INICIO){
-			System.out.println("INICIO");
+			tipo = CasillaTipo.INICIO;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.PROPIEDAD){
-			System.out.println("PROPIEDAD");
+			tipo = CasillaTipo.PROPIEDAD;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.SUERTE){
-			System.out.println("SUERTE");
+			tipo = CasillaTipo.SUERTE;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.DESTINO){
-			System.out.println("DESTINO");
+			tipo = CasillaTipo.DESTINO;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.CARCEL){
-			System.out.println("CARCEL");
+			tipo = CasillaTipo.CARCEL;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.POLICIA){
-			System.out.println("POLICIA");
+			tipo = CasillaTipo.POLICIA;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.LIBRE){
-			System.out.println("LIBRE");
+			tipo = CasillaTipo.LIBRE;
 		}
 		else if(posiciones[posicion][0] == CasillaTipo.SERVICIO){
-			System.out.println("SERVICIO");
+			tipo = CasillaTipo.SERVICIO;
+		}
+		
+		System.out.println(tipo.toString());
+		boolean dueño = false;
+		
+		if(getPanel(posicion).getDueño() != null){
+			// Tiene dueño
+			dueño = true;
 		}
 		
 		try {
-			server.getPartidaController().cambiarTurno(jugPos);
+			server.getPartidaController().accion(this.jugador, tipo.toString(), dueño);
 		} catch (RemoteException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void mostrarOpciones(Jugador jugador, List<String> acciones){
+		/*System.out.println("Para "+jugador.getNombre());
+		
+		for(String s : acciones){
+			System.out.println(s);
+		}*/
+		
+		if(jugador.getNombre().equals(this.jugador.getNombre())){
+			// Simplificar esto
+			if(acciones.contains("PASAR")){
+				btnPasar.setEnabled(true);
+			}
+			if(acciones.contains("COMPRAR")){
+				btnComprar.setEnabled(true);
+			}
+			if(acciones.contains("MULTA")){
+				this.jugador.setDinero(this.jugador.getDinero()-50);
+				
+				try {
+					server.pagarMulta(darDueño(posicion), 50);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+				
+				mostrarDatos();
+				
+				btnPasar.setEnabled(true);
+			}
+			if(acciones.contains("CARCEL")){
+				carcel = true;
+				posicion = 4;
+				updatePositions(0);
+			}
+			if(acciones.contains("SUERTE")){
+				btnPasar.setEnabled(true);
+				Random r = new Random();
+				int i = r.nextInt(4);
+				String suerte = suertes.get(i);
+				lblDescripcion.setText(suerte);
+			}
+			if(acciones.contains("DESTINO")){
+				btnPasar.setEnabled(true);
+				Random r = new Random();
+				int i = r.nextInt(4);
+				String destino = destinos.get(i);
+				lblDescripcion.setText(destino);
+			}
+		}
+		
+		//System.out.println("----------");
+	}
+	
+	public void comprarPropiedad(Jugador jugador, int posicion){
+		getPanel(posicion).setDueño(jugador);
+		getPanel(posicion).lblDueño.setText(jugador.getNombre());
+		getPanel(posicion).lblDueño.setVisible(true);
+		
+		System.out.println("#1 - "+jugador.getNombre() + ", $"+jugador.getDinero());
+		System.out.println("#2 - "+this.jugador.getNombre() + ", $"+this.jugador.getDinero());
+		//System.out.println(jugador.getNombre() + " - " + this.jugador.getNombre());
+		
+		if(jugador.getNombre().equals(this.jugador.getNombre())){
+			this.jugador.setDinero(this.jugador.getDinero()-100);
+		}
+		
+		System.out.println("#3 - "+jugador.getNombre() + ", $"+jugador.getDinero());
+		System.out.println("#4 - "+this.jugador.getNombre() + ", $"+this.jugador.getDinero());
+		
+		System.out.println("----------");
+		
+		mostrarDatos();
+		pasarTurno(jugador);
+	}
+	
+	private void pasarTurno(Jugador jugador){
+		intento = 0;
+		try {
+			server.getPartidaController().cambiarTurno(getJugadorPos(jugador));
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		
+		btnComprar.setEnabled(false);
+		btnPasar.setEnabled(false);
+	}
+	
+	private void salirCarcel() {
+		if(carcel){
+			Random r = new Random();
+			int i = r.nextInt(6)+1;
+			int i2 = r.nextInt(6)+1;
+			
+			System.out.println("R1: "+i+", R2: "+i2);
+			
+			intento++;
+			
+			if(i == i2){
+				carcel = false;
+				lblDescripcion.setText("Has salido de la cárcel!");
+				intento = 3;
+			}
+			else{
+				lblDescripcion.setText("Has fallado! "+intento+"/3");
+			}
+			
+			if(intento >= 3){
+				btnSalir.setVisible(false);
+				btnPasar.setEnabled(true);
+			}
 		}
 	}
 	
@@ -120,8 +254,15 @@ public class TableroWindow {
 	}
 	
 	public void cambiarTurno(int pos, Jugador jugador, Jugador recibeTurno) {
+		lblTurno.setText("Es el turno de "+recibeTurno.getNombre());
 		if(jugador.getNombre().equals(recibeTurno.getNombre())){
-			btnTirarDado.setEnabled(true);
+			if(carcel){
+				btnSalir.setVisible(true);
+			}
+			else{
+				btnSalir.setVisible(false);
+				btnTirarDado.setEnabled(true);
+			}
 		}
 		else{
 			btnTirarDado.setEnabled(false);
@@ -138,19 +279,26 @@ public class TableroWindow {
 		for(int i=0; i<jugadores.size(); i++){
 			switch(i){
 			case 0:
-				lblJp_1.setText(jugadores.get(i).getNombre());	
+				lblJp_1.setText("JP1: "+jugadores.get(i).getNombre());	
 				break;
 			case 1:
-				lblJp_2.setText(jugadores.get(i).getNombre());
+				lblJp_2.setText("JP2: "+jugadores.get(i).getNombre());
 				break;
 			case 2:
-				lblJp_3.setText(jugadores.get(i).getNombre());
+				lblJp_3.setText("JP3: "+jugadores.get(i).getNombre());
 				break;
 			case 3:
-				lblJp_4.setText(jugadores.get(i).getNombre());
+				lblJp_4.setText("JP4: "+jugadores.get(i).getNombre());
 				break;
 				default: break;
 			} 
+		}
+	}
+	
+	public void pagarMulta(Jugador dueño, int cantidad){
+		if(jugador.getNombre().equals(dueño.getNombre())){
+			this.jugador.setDinero(this.jugador.getDinero()+cantidad);
+			mostrarDatos();
 		}
 	}
 	
@@ -170,6 +318,10 @@ public class TableroWindow {
 		}
 		lblTurno.setText("Es el turno de "+jugadores.get(0).getNombre()+" (JP1)");
 		posAnterior = 0;
+	}
+	
+	private void mostrarDatos(){
+		lblDinero.setText("$"+this.jugador.getDinero());
 	}
 
 	private void initialize() {
@@ -304,9 +456,11 @@ public class TableroWindow {
 		btnTirarDado.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
+					// Tirar dado
 					int dado = server.tirarDado();
 					label.setText(String.valueOf(dado));
 					updatePositions(dado);
+					btnTirarDado.setEnabled(false);
 				} catch (RemoteException e1) {
 					e1.printStackTrace();
 				}
@@ -320,27 +474,32 @@ public class TableroWindow {
 		springLayout.putConstraint(SpringLayout.SOUTH, label, -6, SpringLayout.NORTH, btnTirarDado);
 		frame.getContentPane().add(label);
 		
-		lblTurno = new JLabel("Es el turno de: ");
+		lblTurno = new JLabel("");
 		springLayout.putConstraint(SpringLayout.NORTH, lblTurno, 6, SpringLayout.SOUTH, panel);
 		springLayout.putConstraint(SpringLayout.WEST, lblTurno, 6, SpringLayout.EAST, panel_1);
 		frame.getContentPane().add(lblTurno);
 		
-		JLabel label_1 = new JLabel("$500");
-		label_1.setForeground(new Color(0, 128, 0));
-		springLayout.putConstraint(SpringLayout.WEST, label_1, 6, SpringLayout.EAST, panel_3);
-		springLayout.putConstraint(SpringLayout.SOUTH, label_1, -6, SpringLayout.NORTH, panel_5);
-		frame.getContentPane().add(label_1);
+		lblDinero = new JLabel("$0");
+		lblDinero.setForeground(new Color(0, 128, 0));
+		springLayout.putConstraint(SpringLayout.WEST, lblDinero, 6, SpringLayout.EAST, panel_3);
+		springLayout.putConstraint(SpringLayout.SOUTH, lblDinero, -6, SpringLayout.NORTH, panel_5);
+		frame.getContentPane().add(lblDinero);
 		
-		JLabel lblDescripcin = new JLabel("Descripción:");
-		springLayout.putConstraint(SpringLayout.NORTH, lblDescripcin, 17, SpringLayout.SOUTH, lblTurno);
-		springLayout.putConstraint(SpringLayout.WEST, lblDescripcin, 6, SpringLayout.EAST, panel_1);
-		frame.getContentPane().add(lblDescripcin);
+		lblDescripcion = new JLabel("");
+		springLayout.putConstraint(SpringLayout.NORTH, lblDescripcion, 17, SpringLayout.SOUTH, lblTurno);
+		springLayout.putConstraint(SpringLayout.WEST, lblDescripcion, 6, SpringLayout.EAST, panel_1);
+		frame.getContentPane().add(lblDescripcion);
 		
 		btnComprar = new JButton("Comprar");
 		btnComprar.setEnabled(false);
 		btnComprar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Comprar
+				try {
+					server.getPartidaController().comprarPropiedad(jugador, posicion);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		springLayout.putConstraint(SpringLayout.SOUTH, btnComprar, 0, SpringLayout.SOUTH, panel_3);
@@ -348,26 +507,29 @@ public class TableroWindow {
 		frame.getContentPane().add(btnComprar);
 		
 		lblEsperando = new JLabel("Esperando a mas jugadores...");
-		springLayout.putConstraint(SpringLayout.NORTH, lblEsperando, 75, SpringLayout.SOUTH, lblDescripcin);
-		springLayout.putConstraint(SpringLayout.WEST, lblEsperando, 55, SpringLayout.EAST, panel_2);
+		springLayout.putConstraint(SpringLayout.WEST, lblEsperando, 6, SpringLayout.EAST, panel_2);
+		springLayout.putConstraint(SpringLayout.SOUTH, lblEsperando, -44, SpringLayout.NORTH, label);
+		springLayout.putConstraint(SpringLayout.EAST, lblEsperando, -6, SpringLayout.WEST, panel_10);
 		frame.getContentPane().add(lblEsperando);
 		
-		lblJp_1 = new JLabel("JP1");
+		lblJp_1 = new JLabel("");
 		springLayout.putConstraint(SpringLayout.NORTH, lblJp_1, 0, SpringLayout.NORTH, panel_1);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_1, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_1);
 		
-		lblJp_2 = new JLabel("JP2");
+		lblJp_2 = new JLabel("");
 		springLayout.putConstraint(SpringLayout.NORTH, lblJp_2, 0, SpringLayout.SOUTH, lblJp_1);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_2, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_2);
 		
-		lblJp_3 = new JLabel("JP3");
-		springLayout.putConstraint(SpringLayout.NORTH, lblJp_3, 0, SpringLayout.NORTH, lblDescripcin);
+		lblJp_3 = new JLabel("");
+		springLayout.putConstraint(SpringLayout.NORTH, lblJp_3, 7, SpringLayout.SOUTH, lblJp_2);
+		springLayout.putConstraint(SpringLayout.EAST, lblDescripcion, -6, SpringLayout.WEST, lblJp_3);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_3, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_3);
 		
-		lblJp_4 = new JLabel("JP4");
+		lblJp_4 = new JLabel("");
+		springLayout.putConstraint(SpringLayout.NORTH, lblEsperando, 59, SpringLayout.SOUTH, lblJp_4);
 		springLayout.putConstraint(SpringLayout.NORTH, lblJp_4, 0, SpringLayout.SOUTH, lblJp_3);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_4, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_4);
@@ -376,12 +538,25 @@ public class TableroWindow {
 		btnPasar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Pasar
+				pasarTurno(getSiguienteJugador(jugador));
 			}
 		});
 		btnPasar.setEnabled(false);
 		springLayout.putConstraint(SpringLayout.SOUTH, btnPasar, -25, SpringLayout.SOUTH, panel_3);
 		springLayout.putConstraint(SpringLayout.EAST, btnPasar, 0, SpringLayout.EAST, panel_7);
 		frame.getContentPane().add(btnPasar);
+		
+		btnSalir = new JButton("Salir");
+		btnSalir.setVisible(false);
+		btnSalir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// Salir de la carcel
+				salirCarcel();
+			}
+		});
+		springLayout.putConstraint(SpringLayout.SOUTH, btnSalir, -50, SpringLayout.SOUTH, panel_3);
+		springLayout.putConstraint(SpringLayout.EAST, btnSalir, 0, SpringLayout.EAST, panel_7);
+		frame.getContentPane().add(btnSalir);
 		
 	}
 	
@@ -462,11 +637,13 @@ public class TableroWindow {
 	}
 	
 	public Jugador getJugador() {
-		return jugador;
+		return this.jugador;
 	}
 
 	public void setJugador(Jugador jugador) {
 		this.jugador = jugador;
+		
+		mostrarDatos();
 	}
 
 	
@@ -481,5 +658,31 @@ public class TableroWindow {
 		}
 		return pos;
 	}
+	
+	private Jugador getSiguienteJugador(Jugador jugador){
+		int i = getJugadorPos(jugador);
+		i = i++;
 		
+		if(i >= jugadores.size()){
+			i = 0;
+		}
+		
+		return jugadores.get(i);
+	}
+	
+	private Jugador darDueño(int posicion){
+		return getPanel(posicion).getDueño();
+	}
+	
+	private void llenarListas(){
+		suertes.add("Planta árboles en sus barrios y recibe por cada propiedad $50.");
+		suertes.add("Usted ha sido elegido Presidente del Consejo. Pague $50 a cada uno de los jugadores.");
+		suertes.add("Le paga a cada jugador $25 por deudas antiguas.");
+		suertes.add("El siguiente jugador está algo triste y usted con su gran corazón le obsequia $50.");
+	
+		destinos.add("Usted ha ganado el segundo premio en un certamen de belleza. Cobre $75 a cada participante.");
+		destinos.add("Vaya a la cárcel.");
+		destinos.add("Una tia abuela desconocida choca con su Ferrari y lamentablemente fallece. Usted hereda $200.");
+		destinos.add("Problemas con la DGI. Pague al banco $250.");
+	}
 }

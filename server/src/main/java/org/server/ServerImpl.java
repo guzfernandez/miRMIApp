@@ -19,7 +19,6 @@ import obligatorio.Controllers.LoginControllerImpl;
 public class ServerImpl implements Server{
 	
 	private List<Observer> observers;
-	
 	private LoginController loginController;
 	private PartidaController partidaController;
 	
@@ -72,6 +71,12 @@ public class ServerImpl implements Server{
 	public void setJugador(Jugador jugador) throws RemoteException {
 		for(Observer o : this.observers) {
 			o.setJugador(jugador);
+		}
+	}
+
+	public void pagarMulta(Jugador dueño, int cantidad) throws RemoteException {
+		for(Observer o : this.observers) {
+			o.pagarMulta(dueño, cantidad);
 		}
 	}
 

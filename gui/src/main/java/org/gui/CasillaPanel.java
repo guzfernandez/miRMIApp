@@ -7,45 +7,49 @@ import java.awt.Color;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+
+import org.common.Jugador;
+
 import javax.swing.JLabel;
 
 public class CasillaPanel extends JPanel {
-
+	private Jugador dueño = null;
 	private JLabel lblJ1, lblJ2, lblJ3, lblJ4;
+	public JLabel lblDueño;
 	
 	public CasillaPanel(CasillaTipo casillaTipo) {
 		SpringLayout springLayout = new SpringLayout();
 		setLayout(springLayout);
 		
-		lblJ1 = new JLabel("J1");
+		lblJ1 = new JLabel("JP1");
 		lblJ1.setVisible(false);
 		springLayout.putConstraint(SpringLayout.NORTH, lblJ1, 10, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, lblJ1, 10, SpringLayout.WEST, this);
 		add(lblJ1);
 		
-		lblJ2 = new JLabel("J2");
+		lblJ2 = new JLabel("JP2");
 		lblJ2.setVisible(false);
 		springLayout.putConstraint(SpringLayout.NORTH, lblJ2, 0, SpringLayout.NORTH, lblJ1);
 		springLayout.putConstraint(SpringLayout.EAST, lblJ2, -10, SpringLayout.EAST, this);
 		add(lblJ2);
 		
-		lblJ3 = new JLabel("J3");
+		lblJ3 = new JLabel("JP3");
 		lblJ3.setVisible(false);
 		springLayout.putConstraint(SpringLayout.WEST, lblJ3, 0, SpringLayout.WEST, lblJ1);
 		springLayout.putConstraint(SpringLayout.SOUTH, lblJ3, -10, SpringLayout.SOUTH, this);
 		add(lblJ3);
 		
-		lblJ4 = new JLabel("J4");
+		lblJ4 = new JLabel("JP4");
 		lblJ4.setVisible(false);
 		springLayout.putConstraint(SpringLayout.NORTH, lblJ4, 0, SpringLayout.NORTH, lblJ3);
 		springLayout.putConstraint(SpringLayout.EAST, lblJ4, 0, SpringLayout.EAST, lblJ2);
 		add(lblJ4);
 		
-		JLabel lblOwned = new JLabel("J0");
-		lblOwned.setVisible(false);
-		springLayout.putConstraint(SpringLayout.WEST, lblOwned, 18, SpringLayout.EAST, lblJ3);
-		springLayout.putConstraint(SpringLayout.SOUTH, lblOwned, 0, SpringLayout.SOUTH, this);
-		add(lblOwned);
+		lblDueño = new JLabel("");
+		lblDueño.setVisible(false);
+		springLayout.putConstraint(SpringLayout.WEST, lblDueño, -15, SpringLayout.EAST, lblJ3);
+		springLayout.putConstraint(SpringLayout.SOUTH, lblDueño, 0, SpringLayout.SOUTH, this);
+		add(lblDueño);
 		
 		setBorder(new LineBorder(new Color(0, 0, 0)));
 		switch (casillaTipo) {
@@ -94,6 +98,7 @@ public class CasillaPanel extends JPanel {
 		lblJ2.setForeground(Color.WHITE);
 		lblJ3.setForeground(Color.WHITE);
 		lblJ4.setForeground(Color.WHITE);
+		lblDueño.setForeground(Color.WHITE);
 	}
 	
 	public JLabel getLabel(int i){
@@ -115,6 +120,14 @@ public class CasillaPanel extends JPanel {
 			break;
 		}
 		return lbl;
+	}
+	
+	public void setDueño(Jugador jugador){
+		this.dueño = jugador;
+	}
+	
+	public Jugador getDueño(){
+		return this.dueño;
 	}
 
 }

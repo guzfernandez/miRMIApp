@@ -5,19 +5,18 @@ import java.util.List;
 
 public class Jugada implements Serializable{
 
-	private Jugador jugador;
-	private List<Accion> acciones;
-	
-	public Jugador getJugador() {
-		return jugador;
-	}
-	public void setJugador(Jugador jugador) {
-		this.jugador = jugador;
-	}
-	public List<Accion> getAcciones() {
+	private List<String> acciones;
+
+	public List<String> getAcciones() {
 		return acciones;
 	}
-	public void setAcciones(List<Accion> acciones) {
+
+	public void setAcciones(List<String> acciones) {
+		this.acciones = acciones;
+	}
+
+	public Jugada(List<String> acciones) {
+		super();
 		this.acciones = acciones;
 	}
 	
