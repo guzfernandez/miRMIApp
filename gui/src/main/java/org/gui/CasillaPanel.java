@@ -16,6 +16,7 @@ public class CasillaPanel extends JPanel {
 	private Jugador dueño = null;
 	private JLabel lblJ1, lblJ2, lblJ3, lblJ4;
 	public JLabel lblDueño;
+	private int precio;
 	
 	public CasillaPanel(CasillaTipo casillaTipo) {
 		SpringLayout springLayout = new SpringLayout();
@@ -128,6 +129,14 @@ public class CasillaPanel extends JPanel {
 	
 	public Jugador getDueño(){
 		return this.dueño;
+	}
+
+	public int getPrecio() {
+		return precio;
+	}
+
+	public void setPrecio(int precio) {
+		this.precio = precio;
 	}
 
 }

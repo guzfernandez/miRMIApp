@@ -195,7 +195,7 @@ public class TableroWindow {
 		getPanel(posicion).lblDueño.setVisible(true);
 		
 		if(jugador.getNombre().equals(this.jugador.getNombre())){
-			this.jugador.setDinero(this.jugador.getDinero()-100);
+			this.jugador.setDinero(this.jugador.getDinero()-getPanel(posicion).getPrecio());
 		}
 		
 		mostrarDatos();
@@ -332,6 +332,7 @@ public class TableroWindow {
 		frame.getContentPane().add(panel);
 		
 		panel_1 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_1.setPrecio(120);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_1, 0, SpringLayout.SOUTH, panel);
 		springLayout.putConstraint(SpringLayout.WEST, panel_1, 0, SpringLayout.WEST, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.EAST, panel_1, -400, SpringLayout.EAST, frame.getContentPane());
@@ -346,6 +347,7 @@ public class TableroWindow {
 		frame.getContentPane().add(panel_2);
 		
 		panel_3 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_3.setPrecio(120);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_3, 0, SpringLayout.SOUTH, panel_2);
 		springLayout.putConstraint(SpringLayout.WEST, panel_3, 0, SpringLayout.WEST, panel_2);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_3, 100, SpringLayout.SOUTH, panel_2);
@@ -361,6 +363,7 @@ public class TableroWindow {
 		
 		// Abajo
 		panel_5 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_5.setPrecio(100);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_5, 0, SpringLayout.SOUTH, panel_3);
 		springLayout.putConstraint(SpringLayout.WEST, panel_5, 100, SpringLayout.WEST, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_5, 0, SpringLayout.SOUTH, panel_4);
@@ -375,6 +378,7 @@ public class TableroWindow {
 		frame.getContentPane().add(panel_6);
 		
 		panel_7 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_7.setPrecio(100);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_7, 0, SpringLayout.NORTH, panel_5);
 		springLayout.putConstraint(SpringLayout.WEST, panel_7, 100, SpringLayout.WEST, panel_6);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_7, 0, SpringLayout.SOUTH, panel_6);
@@ -390,6 +394,7 @@ public class TableroWindow {
 		
 		// Derecha
 		panel_9 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_9.setPrecio(75);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_9, -100, SpringLayout.NORTH, panel_6);
 		springLayout.putConstraint(SpringLayout.WEST, panel_9, 300, SpringLayout.EAST, panel_2);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_9, 0, SpringLayout.SOUTH, panel_3);
@@ -404,6 +409,7 @@ public class TableroWindow {
 		frame.getContentPane().add(panel_10);
 		
 		panel_11 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_11.setPrecio(75);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_11, 0, SpringLayout.NORTH, panel_1);
 		springLayout.putConstraint(SpringLayout.WEST, panel_11, 0, SpringLayout.WEST, panel_8);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_11, 0, SpringLayout.SOUTH, panel_1);
@@ -419,6 +425,7 @@ public class TableroWindow {
 		
 		// Arriba
 		panel_13 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_13.setPrecio(50);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_13, 0, SpringLayout.NORTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.WEST, panel_13, 0, SpringLayout.WEST, panel_7);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_13, -300, SpringLayout.NORTH, panel_7);
@@ -433,6 +440,7 @@ public class TableroWindow {
 		frame.getContentPane().add(panel_14);
 		
 		panel_15 = new CasillaPanel(CasillaTipo.PROPIEDAD);
+		panel_15.setPrecio(50);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_15, 0, SpringLayout.NORTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_15, -398, SpringLayout.SOUTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.WEST, panel_15, 0, SpringLayout.WEST, panel_5);
@@ -499,7 +507,6 @@ public class TableroWindow {
 		
 		lblEsperando = new JLabel("Esperando a mas jugadores...");
 		springLayout.putConstraint(SpringLayout.WEST, lblEsperando, 6, SpringLayout.EAST, panel_2);
-		springLayout.putConstraint(SpringLayout.SOUTH, lblEsperando, -44, SpringLayout.NORTH, label);
 		springLayout.putConstraint(SpringLayout.EAST, lblEsperando, -6, SpringLayout.WEST, panel_10);
 		frame.getContentPane().add(lblEsperando);
 		
@@ -520,7 +527,7 @@ public class TableroWindow {
 		frame.getContentPane().add(lblJp_3);
 		
 		lblJp_4 = new JLabel("");
-		springLayout.putConstraint(SpringLayout.NORTH, lblEsperando, 59, SpringLayout.SOUTH, lblJp_4);
+		springLayout.putConstraint(SpringLayout.NORTH, lblEsperando, 129, SpringLayout.SOUTH, lblJp_4);
 		springLayout.putConstraint(SpringLayout.NORTH, lblJp_4, 0, SpringLayout.SOUTH, lblJp_3);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_4, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_4);
@@ -538,6 +545,7 @@ public class TableroWindow {
 		frame.getContentPane().add(btnPasar);
 		
 		btnSalir = new JButton("Salir");
+		springLayout.putConstraint(SpringLayout.SOUTH, lblEsperando, -64, SpringLayout.NORTH, btnSalir);
 		btnSalir.setVisible(false);
 		btnSalir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
