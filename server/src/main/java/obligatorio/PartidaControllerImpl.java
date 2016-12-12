@@ -45,7 +45,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		
 		System.out.println("Jugadores: "+darJugadoresEnPartida().size());
 		
-		actulizarUI();
+		actualizarUI();
 		partidaCountdown();
 		
 		return esta;
@@ -58,7 +58,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 			ganador(partida.darJugadoresEnPartida().get(0));
 		}
 		else{
-			actulizarUI();	
+			actualizarUI();	
 		}
 		
 		for(Observer o : observers){
@@ -112,7 +112,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		}
 	}
 	
-	private void actulizarUI(){
+	private void actualizarUI(){
 		for(Observer o : observers){
 			try {
 				o.mostrarJugadores();
@@ -125,7 +125,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	private void actualizarTimer(int segundo){
 		for(Observer o : observers){
 			try {
-				o.actulizarTimer(segundo);
+				o.actualizarTimer(segundo);
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
@@ -135,7 +135,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	public void agregarObserver(Observer observer) {
 		if(!observers.contains(observer)){
 			observers.add(observer);
-			actulizarUI();
+			actualizarUI();
 		}
 	}
 
@@ -235,7 +235,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	}
 
 	public void mostrarDatosJugador() throws RemoteException {
-		actulizarUI();
+		actualizarUI();
 	}
 
 	public void venderPropiedad(Jugador jugador, int posicion) throws RemoteException {

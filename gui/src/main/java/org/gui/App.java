@@ -43,11 +43,7 @@ public class App extends UnicastRemoteObject implements Observer{
 		window.updateUI();
 	}
 	
-	public void notificar(String mensaje) throws RemoteException {
-		window.updateUI();
-	}
-
-	public void actulizarTimer(int segundo) throws RemoteException {
+	public void actualizarTimer(int segundo) throws RemoteException {
 		window.actualizarTimer(segundo);
 	}
 

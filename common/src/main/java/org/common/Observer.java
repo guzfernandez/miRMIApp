@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface Observer extends Remote, Serializable{
 	public void mostrarJugadores() throws RemoteException;
-	public void actulizarTimer(int segundo) throws RemoteException;
+	public void actualizarTimer(int segundo) throws RemoteException;
 	public void empezarPartida(Jugador jugador) throws RemoteException;
 	public void setJugador(Jugador jugador) throws RemoteException;
 	public Jugador getJugador() throws RemoteException;
