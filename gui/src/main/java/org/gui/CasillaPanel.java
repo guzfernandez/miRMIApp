@@ -8,6 +8,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+import org.common.CasillaTipo;
 import org.common.Jugador;
 
 import javax.swing.JLabel;
@@ -17,6 +18,7 @@ public class CasillaPanel extends JPanel {
 	private JLabel lblJ1, lblJ2, lblJ3, lblJ4;
 	public JLabel lblDueño;
 	private int precio;
+	private int multa;
 	
 	public CasillaPanel(CasillaTipo casillaTipo) {
 		SpringLayout springLayout = new SpringLayout();
@@ -137,6 +139,14 @@ public class CasillaPanel extends JPanel {
 
 	public void setPrecio(int precio) {
 		this.precio = precio;
+	}
+
+	public int getMulta() {
+		return multa;
+	}
+
+	public void setMulta(int multa) {
+		this.multa = multa;
 	}
 
 }

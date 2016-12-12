@@ -71,38 +71,18 @@ public class LoginWindow {
 					}
 					else{
 						frame.dispose();
-						server.getPartidaController().agregarJugador(jugador);
-						server.setJugador(jugador);
-						
-						List<Observer> observers = server.getObservers();
-						
-						for(Observer o : observers){
-							server.getPartidaController().agregarObserver(o);
-						}
-						
-						//boolean esta = false;
-						/*List<Jugador> jugadoresEnPartida = server.getPartidaController().darJugadoresEnPartida(); 
-						
-						if(jugadoresEnPartida == null){
-							System.out.println("IS NULL");
-						}
-						
-						for(int i=0; i<jugadoresEnPartida.size(); i++){
-							if(jugadoresEnPartida.get(i).getNombre().equals(jugador.getNombre())){
-								esta = true;
-							}
-						}
+						jugador.setDinero(100);//200
+						boolean esta = server.getPartidaController().agregarJugador(jugador);
 						
 						if(!esta){
-							server.getPartidaController().agregarJugador(jugador);
-							server.getPartidaController().setJugador(jugador);
+							server.setJugador(jugador);
 							
 							List<Observer> observers = server.getObservers();
 							
 							for(Observer o : observers){
 								server.getPartidaController().agregarObserver(o);
 							}
-						}*/
+						}
 					}
 					
 				} catch (RemoteException e1) {

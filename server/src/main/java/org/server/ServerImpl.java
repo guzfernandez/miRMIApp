@@ -46,9 +46,9 @@ public class ServerImpl implements Server{
 		this.observers.add(observer);
 	}
 
-	public void sendMessage(String message) throws RemoteException {
+	public void mostrarJugadores() throws RemoteException {
 		for(Observer o : this.observers) {
-			o.notificar(message);
+			o.mostrarJugadores();
 		}
 	}
 
@@ -79,6 +79,5 @@ public class ServerImpl implements Server{
 			o.pagarMulta(dueño, cantidad);
 		}
 	}
-
 
 }

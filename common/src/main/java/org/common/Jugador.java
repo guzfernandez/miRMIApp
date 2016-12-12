@@ -11,11 +11,10 @@ public class Jugador implements Remote, Serializable {
 	private int partGanadas;
 	private int partPerdidas;
 	
-	public Jugador(String nombre, String password, int dinero, int partGanadas, int partPerdidas) throws RemoteException {
+	public Jugador(String nombre, String password, int partGanadas, int partPerdidas) throws RemoteException {
 		super();
 		this.nombre = nombre;
 		this.password = password;
-		this.dinero = dinero;
 		this.partGanadas = partGanadas;
 		this.partPerdidas = partPerdidas;
 	}

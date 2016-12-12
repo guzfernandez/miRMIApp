@@ -5,6 +5,8 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.SpringLayout;
 import javax.swing.JLabel;
+
+import org.common.CasillaTipo;
 import org.common.Jugador;
 import org.common.Server;
 import java.awt.Color;
@@ -28,7 +30,7 @@ public class TableroWindow {
 	private int intento = 0;
 	private List<String> suertes = new ArrayList<String>();
 	private List<String> destinos = new ArrayList<String>();
-	private int posAnterior = -1;
+	private int posAnterior = 0;
 	private CasillaTipo[][] posiciones;
 	private JLabel lblJp_1, lblJp_2, lblJp_3, lblJp_4, lblEsperando, lblTurno, lblDinero, lblDescripcion;
 	private JButton btnTirarDado, btnComprar, btnPasar;
@@ -74,7 +76,8 @@ public class TableroWindow {
 			int aux = posicion+dado;
 			if(aux > 15){
 				posicion = aux-16;
-				this.jugador.setDinero(this.jugador.getDinero()+200);
+				//this.jugador.setDinero(this.jugador.getDinero()+200);
+				cambiarDinero(this.jugador, 200);
 				mostrarDatos();
 			}
 			else{
@@ -90,60 +93,111 @@ public class TableroWindow {
 		getOpciones(posAnterior, getJugadorPos(jugador), posicion);
 	}
 	
+	private void cambiarDinero(Jugador jugador, int cantidad){
+		System.out.println("Cambia $ - "+jugador.getNombre()+", "+cantidad);
+		jugador.setDinero(jugador.getDinero()+cantidad);
+		
+		try {
+			server.getPartidaController().actualizarJugador(jugador);
+		} catch (RemoteException e2) {
+			e2.printStackTrace();
+		}
+		
+		if(jugador.getDinero() < 0){
+			int i = 0;
+			int propPos = -1;
+			while(i < posiciones.length){
+				CasillaPanel panel = getPanel(i);
+				if(panel.getDueño() != null && panel.getDueño().getNombre().equals(jugador.getNombre())){
+					propPos = i;
+					i = posiciones.length;
+				}
+				i++;
+			}
+			
+			if(propPos != -1){
+				try {
+					server.getPartidaController().venderPropiedad(jugador, propPos);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
+			}
+			else{
+				pasarTurno(jugador);
+				try {
+					server.getPartidaController().removerJugador(jugador);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		else if(jugador.getNombre().equals(this.jugador.getNombre())){
+			// Mostrar dinero
+			/*try {
+				server.getPartidaController().mostrarDatosJugador();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}*/
+			mostrarDatos();
+		}
+		mostrarDatos();
+	}
+	
+	public void venderPropiedad(Jugador jugador, int posicion){
+		CasillaPanel panel = getPanel(posicion);
+		panel.setDueño(null);
+		panel.lblDueño.setText("");
+		
+		//this.jugador.setDinero(this.jugador.getDinero()+panel.getPrecio());
+		cambiarDinero(jugador, panel.getPrecio());
+		mostrarDatos();
+		btnPasar.setEnabled(true);
+	}
+	
+	public void ganador(Jugador jugador){
+		System.out.println(jugador.getNombre()+" ha ganado");
+		jugador.setPartGanadas(jugador.getPartGanadas()+1);
+		
+		jugadores.set(getJugadorPos(jugador), jugador);
+		
+		if(this.jugador.getNombre().equals(jugador.getNombre())){
+			lblEsperando.setText("HAS GANADO LA PARTIDA!");
+		}
+		
+		updateUI();
+	}
+	
+	public void perdedor(Jugador jugador){
+		jugador.setPartPerdidas(jugador.getPartPerdidas()+1);
+		
+		if(this.jugador.getNombre().equals(jugador.getNombre())){
+			lblEsperando.setText("HAS PERDIDO!");
+		}
+	}
+	
 	private void getOpciones(int posAnterior, int jugPos, int posicion){
-		getPanel(posAnterior).getLabel(jugPos+1).setVisible(false);
-		getPanel(posicion).getLabel(jugPos+1).setVisible(true);
+		//getPanel(posAnterior).getLabel(jugPos+1).setVisible(false);
+		//getPanel(posicion).getLabel(jugPos+1).setVisible(true);
 		this.posAnterior = posicion;
 		
-		CasillaTipo tipo = null;
-		
-		if(posiciones[posicion][0] == CasillaTipo.INICIO){
-			tipo = CasillaTipo.INICIO;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.PROPIEDAD){
-			tipo = CasillaTipo.PROPIEDAD;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.SUERTE){
-			tipo = CasillaTipo.SUERTE;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.DESTINO){
-			tipo = CasillaTipo.DESTINO;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.CARCEL){
-			tipo = CasillaTipo.CARCEL;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.POLICIA){
-			tipo = CasillaTipo.POLICIA;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.LIBRE){
-			tipo = CasillaTipo.LIBRE;
-		}
-		else if(posiciones[posicion][0] == CasillaTipo.SERVICIO){
-			tipo = CasillaTipo.SERVICIO;
-		}
+		//CasillaTipo tipo = null;
+		CasillaTipo tipo = posiciones[posicion][0];
 		
 		System.out.println(tipo.toString());
 		boolean dueño = false;
 		
 		if(getPanel(posicion).getDueño() != null){
-			// Tiene dueño
 			dueño = true;
 		}
 		
 		try {
-			server.getPartidaController().accion(this.jugador, tipo.toString(), dueño);
+			server.getPartidaController().accion(this.jugador, tipo, dueño);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void mostrarOpciones(Jugador jugador, List<String> acciones){
-		/*System.out.println("Para "+jugador.getNombre());
-		
-		for(String s : acciones){
-			System.out.println(s);
-		}*/
-		
 		if(jugador.getNombre().equals(this.jugador.getNombre())){
 			// Simplificar esto
 			if(acciones.contains("PASAR")){
@@ -153,15 +207,14 @@ public class TableroWindow {
 				btnComprar.setEnabled(true);
 			}
 			if(acciones.contains("MULTA")){
-				this.jugador.setDinero(this.jugador.getDinero()-50);
+				//this.jugador.setDinero(this.jugador.getDinero()-getPanel(posicion).getMulta());
+				cambiarDinero(this.jugador, -getPanel(posicion).getMulta());
 				
 				try {
-					server.pagarMulta(darDueño(posicion), 50);
+					server.pagarMulta(darDueño(posicion), getPanel(posicion).getMulta());
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
-				
-				mostrarDatos();
 				
 				btnPasar.setEnabled(true);
 			}
@@ -176,6 +229,45 @@ public class TableroWindow {
 				int i = r.nextInt(4);
 				String suerte = suertes.get(i);
 				lblDescripcion.setText("<html>"+suerte+"</html>");
+				System.out.println(suerte);
+				
+				switch (i) {
+				case 0:
+					int recibe = 0;
+					for(int j=0; j<posiciones.length; j++){
+						if(getPanel(j).getDueño() != null && getPanel(j).getDueño().getNombre().equals(this.jugador.getNombre())){
+							recibe += 50;
+						}
+					}
+					//this.jugador.setDinero(this.jugador.getDinero()+recibe);
+					cambiarDinero(this.jugador, recibe);
+					break;
+				case 1:
+					for (Jugador j : jugadores) {
+						//j.setDinero(j.getDinero()+50);
+						cambiarDinero(j, 50);
+						//this.jugador.setDinero(this.jugador.getDinero()-50);
+						cambiarDinero(this.jugador, -50);
+					}
+					break;
+				case 2:
+					for (Jugador j : jugadores) {
+						//j.setDinero(j.getDinero()+25);
+						cambiarDinero(j, 25);
+						//this.jugador.setDinero(this.jugador.getDinero()-25);
+						cambiarDinero(this.jugador, -25);
+					}
+					break;
+				case 3:
+					Jugador siguiente = getSiguienteJugador(this.jugador);	
+					//siguiente.setDinero(siguiente.getDinero()+75);
+					cambiarDinero(siguiente, 75);
+					//this.jugador.setDinero(this.jugador.getDinero()-75);
+					cambiarDinero(this.jugador, -75);
+					break;
+				default:
+					break;
+				}
 			}
 			if(acciones.contains("DESTINO")){
 				btnPasar.setEnabled(true);
@@ -183,23 +275,67 @@ public class TableroWindow {
 				int i = r.nextInt(4);
 				String destino = destinos.get(i);
 				lblDescripcion.setText("<html>"+destino+"</html>");
+				System.out.println(destino);
+				
+				switch (i) {
+				case 0:
+					for (Jugador j : jugadores) {
+						if(!j.getNombre().equals(this.jugador.getNombre())){
+							//j.setDinero(j.getDinero()-75);
+							cambiarDinero(j, -75);
+							//this.jugador.setDinero(this.jugador.getDinero()+75);	
+							cambiarDinero(this.jugador, 75);
+						}
+					}
+					break;
+				case 1:
+					carcel = true;
+					posicion = 4;
+					updatePositions(0);		
+					break;
+				case 2:
+					//this.jugador.setDinero(this.jugador.getDinero()+200);
+					cambiarDinero(this.jugador, 200);
+					break;
+				case 3:
+					//this.jugador.setDinero(this.jugador.getDinero()-250);
+					cambiarDinero(this.jugador, -250);
+					break;
+				default:
+					break;
+				}
+			}
+			try {
+				server.getPartidaController().mostrarDatosJugador();
+			} catch (RemoteException e) {
+				e.printStackTrace();
 			}
 		}
-		
-		//System.out.println("----------");
 	}
 	
 	public void comprarPropiedad(Jugador jugador, int posicion){
-		getPanel(posicion).setDueño(jugador);
-		getPanel(posicion).lblDueño.setText(jugador.getNombre());
-		getPanel(posicion).lblDueño.setVisible(true);
+		System.out.println("Comprar: "+jugador.getNombre()+", $"+jugador.getDinero()+", pos: "+posicion);
 		
-		if(jugador.getNombre().equals(this.jugador.getNombre())){
-			this.jugador.setDinero(this.jugador.getDinero()-getPanel(posicion).getPrecio());
+		CasillaPanel panel = getPanel(posicion);
+		
+		if(jugador.getDinero() >= panel.getPrecio()){
+			panel.setDueño(jugador);
+			panel.lblDueño.setText(jugador.getNombre());
+			panel.lblDueño.setVisible(true);
+			
+			if(jugador.getNombre().equals(this.jugador.getNombre())){
+				//this.jugador.setDinero(this.jugador.getDinero()-getPanel(posicion).getPrecio());
+				cambiarDinero(this.jugador, -panel.getPrecio());
+				mostrarDatos();
+			}
+			
+			pasarTurno(jugador);
+		}
+		else if(this.jugador.getNombre().equals(jugador.getNombre())){
+			lblDescripcion.setText("No tienes suficiente dinero.");
 		}
 		
-		mostrarDatos();
-		pasarTurno(jugador);
+		System.out.println("This jugador: "+this.jugador.getNombre()+", $"+this.jugador.getDinero());
 	}
 	
 	private void pasarTurno(Jugador jugador){
@@ -212,6 +348,7 @@ public class TableroWindow {
 		
 		btnComprar.setEnabled(false);
 		btnPasar.setEnabled(false);
+		lblDescripcion.setText("");
 	}
 	
 	private void salirCarcel() {
@@ -244,11 +381,49 @@ public class TableroWindow {
 		lblEsperando.setText("La partida empieza en "+segundo+" segundos.");
 	}
 	
+	public void actualizarListaJugadores(){
+		try {
+			jugadores = server.getPartidaController().darJugadoresEnPartida();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void cambiarTurno(int pos, Jugador jugador, Jugador recibeTurno) {
 		lblTurno.setText("Es el turno de "+recibeTurno.getNombre());
 		if(jugador.getNombre().equals(recibeTurno.getNombre())){
+			lblTurno.setText("ES TU TURNO!");
+			
 			if(carcel){
 				btnSalir.setVisible(true);
+			}
+			else if(this.jugador.getDinero() <= 0){
+				btnSalir.setVisible(false);
+				int i = 0;
+				int propPos = -1;
+				while(i < posiciones.length){
+					CasillaPanel panel = getPanel(i);
+					if(panel.getDueño() != null && panel.getDueño().getNombre().equals(this.jugador.getNombre())){
+						propPos = i;
+						i = posiciones.length;
+					}
+					i++;
+				}
+				
+				if(propPos != -1){
+					try {
+						server.getPartidaController().venderPropiedad(this.jugador, propPos);
+					} catch (RemoteException e1) {
+						e1.printStackTrace();
+					}
+				}
+				else{
+					try {
+						server.getPartidaController().removerJugador(this.jugador);
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			else{
 				btnSalir.setVisible(false);
@@ -261,34 +436,49 @@ public class TableroWindow {
 	}
 	
 	public void updateUI(){
-		try {
-			jugadores = server.getPartidaController().darJugadoresEnPartida();
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
+		actualizarListaJugadores();
 		
 		for(int i=0; i<jugadores.size(); i++){
 			switch(i){
 			case 0:
-				lblJp_1.setText("JP1: "+jugadores.get(i).getNombre());	
+				lblJp_1.setText("JP1: "+jugadores.get(i).getNombre()+" "+jugadores.get(i).getPartGanadas()+"-"+jugadores.get(i).getPartPerdidas());	
 				break;
 			case 1:
-				lblJp_2.setText("JP2: "+jugadores.get(i).getNombre());
+				lblJp_2.setText("JP2: "+jugadores.get(i).getNombre()+" "+jugadores.get(i).getPartGanadas()+"-"+jugadores.get(i).getPartPerdidas());
 				break;
 			case 2:
-				lblJp_3.setText("JP3: "+jugadores.get(i).getNombre());
+				lblJp_3.setText("JP3: "+jugadores.get(i).getNombre()+" "+jugadores.get(i).getPartGanadas()+"-"+jugadores.get(i).getPartPerdidas());
 				break;
 			case 3:
-				lblJp_4.setText("JP4: "+jugadores.get(i).getNombre());
+				lblJp_4.setText("JP4: "+jugadores.get(i).getNombre()+" "+jugadores.get(i).getPartGanadas()+"-"+jugadores.get(i).getPartPerdidas());
 				break;
 				default: break;
 			} 
+		}
+		
+		if(this.jugador != null){
+			lblDinero.setText("$"+this.jugador.getDinero());
+		}
+	}
+	
+	public void actualizarTablero(){
+		for(int i=0; i<posiciones.length; i++){
+			CasillaPanel panel = getPanel(i);
+			Jugador dueño = panel.getDueño();
+			
+			if(dueño != null){
+				panel.lblDueño.setText(dueño.getNombre());
+			}
+			else{
+				panel.lblDueño.setText("");
+			}
 		}
 	}
 	
 	public void pagarMulta(Jugador dueño, int cantidad){
 		if(jugador.getNombre().equals(dueño.getNombre())){
-			this.jugador.setDinero(this.jugador.getDinero()+cantidad);
+			//this.jugador.setDinero(this.jugador.getDinero()+cantidad);
+			cambiarDinero(this.jugador, cantidad);
 			mostrarDatos();
 		}
 	}
@@ -308,10 +498,16 @@ public class TableroWindow {
 			panel.getLabel(i).setVisible(true);
 		}
 		lblTurno.setText("Es el turno de "+jugadores.get(0).getNombre()+" (JP1)");
-		posAnterior = 0;
+		//posAnterior = 0;
 	}
 	
 	private void mostrarDatos(){
+		try {
+			server.getPartidaController().mostrarDatosJugador();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		
 		lblDinero.setText("$"+this.jugador.getDinero());
 	}
 
@@ -333,6 +529,7 @@ public class TableroWindow {
 		
 		panel_1 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_1.setPrecio(120);
+		panel_1.setMulta(60);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_1, 0, SpringLayout.SOUTH, panel);
 		springLayout.putConstraint(SpringLayout.WEST, panel_1, 0, SpringLayout.WEST, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.EAST, panel_1, -400, SpringLayout.EAST, frame.getContentPane());
@@ -348,6 +545,7 @@ public class TableroWindow {
 		
 		panel_3 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_3.setPrecio(120);
+		panel_3.setMulta(60);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_3, 0, SpringLayout.SOUTH, panel_2);
 		springLayout.putConstraint(SpringLayout.WEST, panel_3, 0, SpringLayout.WEST, panel_2);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_3, 100, SpringLayout.SOUTH, panel_2);
@@ -364,6 +562,7 @@ public class TableroWindow {
 		// Abajo
 		panel_5 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_5.setPrecio(100);
+		panel_5.setMulta(50);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_5, 0, SpringLayout.SOUTH, panel_3);
 		springLayout.putConstraint(SpringLayout.WEST, panel_5, 100, SpringLayout.WEST, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_5, 0, SpringLayout.SOUTH, panel_4);
@@ -371,6 +570,8 @@ public class TableroWindow {
 		frame.getContentPane().add(panel_5);
 		
 		panel_6 = new CasillaPanel(CasillaTipo.SERVICIO);
+		panel_6.setPrecio(100);
+		panel_6.setMulta(50);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_6, 0, SpringLayout.NORTH, panel_4);
 		springLayout.putConstraint(SpringLayout.WEST, panel_6, 100, SpringLayout.WEST, panel_5);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_6, 0, SpringLayout.SOUTH, panel_5);
@@ -379,6 +580,7 @@ public class TableroWindow {
 		
 		panel_7 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_7.setPrecio(100);
+		panel_7.setMulta(50);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_7, 0, SpringLayout.NORTH, panel_5);
 		springLayout.putConstraint(SpringLayout.WEST, panel_7, 100, SpringLayout.WEST, panel_6);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_7, 0, SpringLayout.SOUTH, panel_6);
@@ -395,6 +597,7 @@ public class TableroWindow {
 		// Derecha
 		panel_9 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_9.setPrecio(75);
+		panel_9.setMulta(35);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_9, -100, SpringLayout.NORTH, panel_6);
 		springLayout.putConstraint(SpringLayout.WEST, panel_9, 300, SpringLayout.EAST, panel_2);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_9, 0, SpringLayout.SOUTH, panel_3);
@@ -410,6 +613,7 @@ public class TableroWindow {
 		
 		panel_11 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_11.setPrecio(75);
+		panel_11.setMulta(35);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_11, 0, SpringLayout.NORTH, panel_1);
 		springLayout.putConstraint(SpringLayout.WEST, panel_11, 0, SpringLayout.WEST, panel_8);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_11, 0, SpringLayout.SOUTH, panel_1);
@@ -426,6 +630,7 @@ public class TableroWindow {
 		// Arriba
 		panel_13 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_13.setPrecio(50);
+		panel_13.setMulta(25);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_13, 0, SpringLayout.NORTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.WEST, panel_13, 0, SpringLayout.WEST, panel_7);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_13, -300, SpringLayout.NORTH, panel_7);
@@ -433,6 +638,8 @@ public class TableroWindow {
 		frame.getContentPane().add(panel_13);
 		
 		panel_14 = new CasillaPanel(CasillaTipo.SERVICIO);
+		panel_14.setPrecio(100);
+		panel_14.setMulta(50);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_14, 0, SpringLayout.NORTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.WEST, panel_14, 0, SpringLayout.WEST, panel_6);
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_14, -300, SpringLayout.NORTH, panel_6);
@@ -441,6 +648,7 @@ public class TableroWindow {
 		
 		panel_15 = new CasillaPanel(CasillaTipo.PROPIEDAD);
 		panel_15.setPrecio(50);
+		panel_15.setMulta(25);
 		springLayout.putConstraint(SpringLayout.NORTH, panel_15, 0, SpringLayout.NORTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.SOUTH, panel_15, -398, SpringLayout.SOUTH, frame.getContentPane());
 		springLayout.putConstraint(SpringLayout.WEST, panel_15, 0, SpringLayout.WEST, panel_5);
@@ -485,8 +693,9 @@ public class TableroWindow {
 		frame.getContentPane().add(lblDinero);
 		
 		lblDescripcion = new JLabel("");
-		springLayout.putConstraint(SpringLayout.NORTH, lblDescripcion, 17, SpringLayout.SOUTH, lblTurno);
-		springLayout.putConstraint(SpringLayout.WEST, lblDescripcion, 6, SpringLayout.EAST, panel_1);
+		springLayout.putConstraint(SpringLayout.NORTH, lblDescripcion, 0, SpringLayout.NORTH, panel_2);
+		springLayout.putConstraint(SpringLayout.WEST, lblDescripcion, 6, SpringLayout.EAST, panel_2);
+		springLayout.putConstraint(SpringLayout.EAST, lblDescripcion, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblDescripcion);
 		
 		btnComprar = new JButton("Comprar");
@@ -506,6 +715,7 @@ public class TableroWindow {
 		frame.getContentPane().add(btnComprar);
 		
 		lblEsperando = new JLabel("Esperando a mas jugadores...");
+		springLayout.putConstraint(SpringLayout.NORTH, lblEsperando, 18, SpringLayout.SOUTH, lblDescripcion);
 		springLayout.putConstraint(SpringLayout.WEST, lblEsperando, 6, SpringLayout.EAST, panel_2);
 		springLayout.putConstraint(SpringLayout.EAST, lblEsperando, -6, SpringLayout.WEST, panel_10);
 		frame.getContentPane().add(lblEsperando);
@@ -522,12 +732,10 @@ public class TableroWindow {
 		
 		lblJp_3 = new JLabel("");
 		springLayout.putConstraint(SpringLayout.NORTH, lblJp_3, 7, SpringLayout.SOUTH, lblJp_2);
-		springLayout.putConstraint(SpringLayout.EAST, lblDescripcion, -6, SpringLayout.WEST, lblJp_3);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_3, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_3);
 		
 		lblJp_4 = new JLabel("");
-		springLayout.putConstraint(SpringLayout.NORTH, lblEsperando, 129, SpringLayout.SOUTH, lblJp_4);
 		springLayout.putConstraint(SpringLayout.NORTH, lblJp_4, 0, SpringLayout.SOUTH, lblJp_3);
 		springLayout.putConstraint(SpringLayout.EAST, lblJp_4, -6, SpringLayout.WEST, panel_11);
 		frame.getContentPane().add(lblJp_4);
@@ -545,7 +753,7 @@ public class TableroWindow {
 		frame.getContentPane().add(btnPasar);
 		
 		btnSalir = new JButton("Salir");
-		springLayout.putConstraint(SpringLayout.SOUTH, lblEsperando, -64, SpringLayout.NORTH, btnSalir);
+		springLayout.putConstraint(SpringLayout.SOUTH, lblEsperando, -58, SpringLayout.NORTH, btnSalir);
 		btnSalir.setVisible(false);
 		btnSalir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -644,7 +852,6 @@ public class TableroWindow {
 		
 		mostrarDatos();
 	}
-
 	
 	private int getJugadorPos(Jugador jugador){
 		int i = 0;

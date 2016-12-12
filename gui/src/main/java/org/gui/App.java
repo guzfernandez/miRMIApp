@@ -6,13 +6,11 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 
-import org.common.Jugada;
 import org.common.Jugador;
 import org.common.Observer;
 import org.common.Server;
 
 public class App extends UnicastRemoteObject implements Observer{
-
 	private Server server;
 	private TableroWindow window;
 	private Jugador jugador;
@@ -28,7 +26,6 @@ public class App extends UnicastRemoteObject implements Observer{
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					//window = TableroWindow.getInstance();
 					window = new TableroWindow();
 					window.setServer(server);
 					window.setVisible(true);
@@ -40,11 +37,9 @@ public class App extends UnicastRemoteObject implements Observer{
 				}
 			}
 		});
-		
 	}
 	
-    public void sendMessage(String message) throws RemoteException {
-		this.server.sendMessage(message);
+    public void mostrarJugadores() throws RemoteException {
 		window.updateUI();
 	}
 	
@@ -89,6 +84,22 @@ public class App extends UnicastRemoteObject implements Observer{
 
 	public void pagarMulta(Jugador dueño, int cantidad) throws RemoteException {
 		window.pagarMulta(dueño, cantidad);
+	}
+
+	public void venderPropiedad(Jugador jugador, int posicion) throws RemoteException {
+		window.venderPropiedad(jugador, posicion);
+	}
+
+	public void ganador(Jugador jugador) throws RemoteException {
+		window.ganador(jugador);
+	}
+
+	public void actualizarListaJugadores() throws RemoteException {
+		window.actualizarListaJugadores();
+	}
+
+	public void perdedor(Jugador jugador) throws RemoteException {
+		window.perdedor(jugador);
 	}
 	
 }

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.common.CasillaTipo;
 import org.common.Jugada;
 import org.common.Jugador;
 import org.common.Observer;
@@ -38,13 +40,44 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		observers = new ArrayList<Observer>();
 	}
 	
-	public void agregarJugador(Jugador jugador) {
-		partida.agregarJugador(jugador);
+	public boolean agregarJugador(Jugador jugador) {
+		boolean esta = partida.agregarJugador(jugador);
 		
 		System.out.println("Jugadores: "+darJugadoresEnPartida().size());
 		
 		actulizarUI();
 		partidaCountdown();
+		
+		return esta;
+	}
+	
+	public void removerJugador(Jugador jugador) throws RemoteException {
+		partida.removerJugador(jugador);
+		
+		if(partida.darJugadoresEnPartida().size() == 1){
+			ganador(partida.darJugadoresEnPartida().get(0));
+		}
+		else{
+			actulizarUI();	
+		}
+		
+		for(Observer o : observers){
+			try {
+				o.perdedor(jugador);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void ganador(Jugador jugador){
+		for(Observer o : observers){
+			try {
+				o.ganador(jugador);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void partidaCountdown(){
@@ -82,7 +115,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	private void actulizarUI(){
 		for(Observer o : observers){
 			try {
-				o.notificar("Notificar");
+				o.mostrarJugadores();
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
@@ -107,7 +140,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	}
 
 	public List<Jugador> darJugadoresEnPartida() {
-		return partida.darJugadoresEnPartida();	// Cambiar esto despues
+		return partida.darJugadoresEnPartida();
 	}
 	
 	public void empezarPartida() throws RemoteException {
@@ -163,10 +196,10 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		}
 	}
 
-	public void accion(Jugador jugador, String accion, boolean dueño) throws RemoteException {
+	public void accion(Jugador jugador, CasillaTipo accion, boolean dueño) throws RemoteException {
 		List<String> acciones = new ArrayList<String>();
 		
-		if(accion.equals("INICIO")){
+		/*if(accion.equals("INICIO")){
 			acciones.add("PASAR");
 			acciones.add("RECOMPENSA");	// +$100
 		}
@@ -190,6 +223,32 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		}
 		else if(accion.equals("SUERTE")){
 			acciones.add("SUERTE");
+		}*/
+		
+		if(accion == CasillaTipo.INICIO){
+			acciones.add("PASAR");
+			acciones.add("RECOMPENSA");	// +$100
+		}
+		else if(accion == CasillaTipo.SERVICIO || accion == CasillaTipo.PROPIEDAD){
+			if(dueño){
+				acciones.add("MULTA");
+			}
+			else{
+				acciones.add("COMPRAR");
+				acciones.add("PASAR");
+			}
+		}
+		else if(accion == CasillaTipo.CARCEL || accion == CasillaTipo.LIBRE){
+			acciones.add("PASAR");
+		}
+		else if(accion == CasillaTipo.DESTINO){
+			acciones.add("DESTINO");
+		}
+		else if(accion == CasillaTipo.POLICIA){
+			acciones.add("CARCEL");
+		}
+		else if(accion == CasillaTipo.SUERTE){
+			acciones.add("SUERTE");
 		}
 		
 		for(Observer o : observers){
@@ -200,4 +259,57 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 			}
 		}
 	}
+
+	public void mostrarDatosJugador() throws RemoteException {
+		actulizarUI();
+	}
+
+	public void venderPropiedad(Jugador jugador, int posicion) throws RemoteException {
+		for(Observer o : observers){
+			try {
+				o.venderPropiedad(jugador, posicion);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void actualizarJugador(Jugador jugador) throws RemoteException {
+		int pos = -1;
+		int i = 0;
+		
+		List<Jugador> jugadores = partida.darJugadoresEnPartida();
+		
+		while(i < jugadores.size()){
+			if(jugadores.get(i).getNombre().equals(jugador.getNombre())){
+				pos = i;
+				i = jugadores.size();
+			}
+			i++;
+		}
+		
+		if(pos != -1){
+			partida.actualizarJugador(jugador, pos);	
+		}
+		
+		for(Observer o : observers){
+			try {
+				o.actualizarListaJugadores();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/*public void actualizarTablero() throws RemoteException {
+		for(Observer o : observers){
+			try {
+				o.actualizarTablero();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}*/
+
+	
 }
