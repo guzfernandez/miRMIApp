@@ -169,7 +169,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		}
 	}
 
-	public void cambiarTurno(int jugPos) throws RemoteException {//JugPos: 1, Size: 2, pos: 0
+	public void cambiarTurno(int jugPos) throws RemoteException {
 		List<Jugador> jugadores = partida.darJugadoresEnPartida();
 		int pos = jugPos+1;
 		
@@ -198,32 +198,6 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 
 	public void accion(Jugador jugador, CasillaTipo accion, boolean dueño) throws RemoteException {
 		List<String> acciones = new ArrayList<String>();
-		
-		/*if(accion.equals("INICIO")){
-			acciones.add("PASAR");
-			acciones.add("RECOMPENSA");	// +$100
-		}
-		else if(accion.equals("SERVICIO") || accion.equals("PROPIEDAD")){
-			if(dueño){
-				acciones.add("MULTA");
-			}
-			else{
-				acciones.add("COMPRAR");
-				acciones.add("PASAR");
-			}
-		}
-		else if(accion.equals("CARCEL") || accion.equals("LIBRE")){
-			acciones.add("PASAR");
-		}
-		else if(accion.equals("DESTINO")){
-			acciones.add("DESTINO");
-		}
-		else if(accion.equals("POLICIA")){
-			acciones.add("CARCEL");
-		}
-		else if(accion.equals("SUERTE")){
-			acciones.add("SUERTE");
-		}*/
 		
 		if(accion == CasillaTipo.INICIO){
 			acciones.add("PASAR");
@@ -300,16 +274,5 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 			}
 		}
 	}
-
-	/*public void actualizarTablero() throws RemoteException {
-		for(Observer o : observers){
-			try {
-				o.actualizarTablero();
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-		}
-	}*/
-
 	
 }

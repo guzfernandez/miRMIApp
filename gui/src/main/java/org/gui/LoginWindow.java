@@ -67,14 +67,17 @@ public class LoginWindow {
 					Jugador jugador = server.getLoginController().login(username, password);
 					
 					if(jugador == null){
-						JOptionPane.showMessageDialog(null, "Error!");
+						JOptionPane.showMessageDialog(null, "Error! Datos incorrectos.");
 					}
 					else{
-						frame.dispose();
-						jugador.setDinero(100);//200
 						boolean esta = server.getPartidaController().agregarJugador(jugador);
 						
-						if(!esta){
+						if(esta){
+							JOptionPane.showMessageDialog(null, "Error! El jugador ya está en la partida.");
+						}
+						else{
+							frame.dispose();
+							jugador.setDinero(100);//200
 							server.setJugador(jugador);
 							
 							List<Observer> observers = server.getObservers();

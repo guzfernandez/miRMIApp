@@ -20,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.Font;
 
 public class TableroWindow {
-
 	private Jugador jugador;
 	private JFrame frame;
 	private Server server;
@@ -76,7 +75,6 @@ public class TableroWindow {
 			int aux = posicion+dado;
 			if(aux > 15){
 				posicion = aux-16;
-				//this.jugador.setDinero(this.jugador.getDinero()+200);
 				cambiarDinero(this.jugador, 200);
 				mostrarDatos();
 			}
@@ -132,12 +130,6 @@ public class TableroWindow {
 			}
 		}
 		else if(jugador.getNombre().equals(this.jugador.getNombre())){
-			// Mostrar dinero
-			/*try {
-				server.getPartidaController().mostrarDatosJugador();
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}*/
 			mostrarDatos();
 		}
 		mostrarDatos();
@@ -148,7 +140,6 @@ public class TableroWindow {
 		panel.setDueño(null);
 		panel.lblDueño.setText("");
 		
-		//this.jugador.setDinero(this.jugador.getDinero()+panel.getPrecio());
 		cambiarDinero(jugador, panel.getPrecio());
 		mostrarDatos();
 		btnPasar.setEnabled(true);
@@ -176,11 +167,8 @@ public class TableroWindow {
 	}
 	
 	private void getOpciones(int posAnterior, int jugPos, int posicion){
-		//getPanel(posAnterior).getLabel(jugPos+1).setVisible(false);
-		//getPanel(posicion).getLabel(jugPos+1).setVisible(true);
 		this.posAnterior = posicion;
 		
-		//CasillaTipo tipo = null;
 		CasillaTipo tipo = posiciones[posicion][0];
 		
 		System.out.println(tipo.toString());
@@ -207,7 +195,6 @@ public class TableroWindow {
 				btnComprar.setEnabled(true);
 			}
 			if(acciones.contains("MULTA")){
-				//this.jugador.setDinero(this.jugador.getDinero()-getPanel(posicion).getMulta());
 				cambiarDinero(this.jugador, -getPanel(posicion).getMulta());
 				
 				try {
@@ -239,30 +226,23 @@ public class TableroWindow {
 							recibe += 50;
 						}
 					}
-					//this.jugador.setDinero(this.jugador.getDinero()+recibe);
 					cambiarDinero(this.jugador, recibe);
 					break;
 				case 1:
 					for (Jugador j : jugadores) {
-						//j.setDinero(j.getDinero()+50);
 						cambiarDinero(j, 50);
-						//this.jugador.setDinero(this.jugador.getDinero()-50);
 						cambiarDinero(this.jugador, -50);
 					}
 					break;
 				case 2:
 					for (Jugador j : jugadores) {
-						//j.setDinero(j.getDinero()+25);
 						cambiarDinero(j, 25);
-						//this.jugador.setDinero(this.jugador.getDinero()-25);
 						cambiarDinero(this.jugador, -25);
 					}
 					break;
 				case 3:
 					Jugador siguiente = getSiguienteJugador(this.jugador);	
-					//siguiente.setDinero(siguiente.getDinero()+75);
 					cambiarDinero(siguiente, 75);
-					//this.jugador.setDinero(this.jugador.getDinero()-75);
 					cambiarDinero(this.jugador, -75);
 					break;
 				default:
@@ -281,9 +261,7 @@ public class TableroWindow {
 				case 0:
 					for (Jugador j : jugadores) {
 						if(!j.getNombre().equals(this.jugador.getNombre())){
-							//j.setDinero(j.getDinero()-75);
 							cambiarDinero(j, -75);
-							//this.jugador.setDinero(this.jugador.getDinero()+75);	
 							cambiarDinero(this.jugador, 75);
 						}
 					}
@@ -294,11 +272,9 @@ public class TableroWindow {
 					updatePositions(0);		
 					break;
 				case 2:
-					//this.jugador.setDinero(this.jugador.getDinero()+200);
 					cambiarDinero(this.jugador, 200);
 					break;
 				case 3:
-					//this.jugador.setDinero(this.jugador.getDinero()-250);
 					cambiarDinero(this.jugador, -250);
 					break;
 				default:
@@ -324,7 +300,6 @@ public class TableroWindow {
 			panel.lblDueño.setVisible(true);
 			
 			if(jugador.getNombre().equals(this.jugador.getNombre())){
-				//this.jugador.setDinero(this.jugador.getDinero()-getPanel(posicion).getPrecio());
 				cambiarDinero(this.jugador, -panel.getPrecio());
 				mostrarDatos();
 			}
@@ -477,7 +452,6 @@ public class TableroWindow {
 	
 	public void pagarMulta(Jugador dueño, int cantidad){
 		if(jugador.getNombre().equals(dueño.getNombre())){
-			//this.jugador.setDinero(this.jugador.getDinero()+cantidad);
 			cambiarDinero(this.jugador, cantidad);
 			mostrarDatos();
 		}
@@ -498,7 +472,6 @@ public class TableroWindow {
 			panel.getLabel(i).setVisible(true);
 		}
 		lblTurno.setText("Es el turno de "+jugadores.get(0).getNombre()+" (JP1)");
-		//posAnterior = 0;
 	}
 	
 	private void mostrarDatos(){
