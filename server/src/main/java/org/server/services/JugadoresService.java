@@ -1,35 +1,39 @@
 package org.server.services;
 
-import java.rmi.RemoteException;
-import java.util.HashMap;
-import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
 
 import org.common.Jugador;
 
 public class JugadoresService {
 
 	private static final JugadoresService instance = new JugadoresService();
-
-	private Map<String, Jugador> jugadores = new HashMap<String, Jugador>();
-
+	private EntityManager em;
+	
 	public static JugadoresService getInstance() {
 		return instance;
 	}
 
 	private JugadoresService() {
-		try {
-			jugadores.put("test", new Jugador("test", "test", 3, 9));
-			jugadores.put("test2", new Jugador("test2", "test2", 2, 8));
-			jugadores.put("test3", new Jugador("test3", "test3", 3, 3));
-			jugadores.put("test4", new Jugador("test4", "test4", 0, 5));
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpaDS");
+		em = (EntityManager) emf.createEntityManager();
 	}
 
-	public Jugador getJugadorByUsername(String username) {
-		return jugadores.get(username);
+	public Jugador login(String username, String password){
+		Jugador jugador = null;
 		
+		Query q = em.createNativeQuery("SELECT * FROM jugadores WHERE nombre = ?1 AND password = ?2", Jugador.class);
+		q.setParameter(1, username);
+		q.setParameter(2, password);
+		
+		try {
+			jugador = (Jugador)q.getSingleResult();	
+		} catch (Exception e2) {
+			e2.printStackTrace();
+		}
+		
+		return jugador;
 	}
 }

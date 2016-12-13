@@ -8,6 +8,11 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
+
 import org.common.CasillaTipo;
 import org.common.Jugada;
 import org.common.Jugador;
@@ -22,6 +27,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	private static PartidaControllerImpl partidaInstance;
 	private boolean timerCorriendo = false;
 	private Timer timer = null;
+	private EntityManager em;
 	
 	public PartidaControllerImpl darPartidaInstance(){
 		if(partidaInstance == null){
@@ -38,6 +44,8 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 		super();
 		partida = new Partida();
 		observers = new ArrayList<Observer>();
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpaDS");
+		em = (EntityManager) emf.createEntityManager();
 	}
 	
 	public boolean agregarJugador(Jugador jugador) {
@@ -61,6 +69,11 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 			actualizarUI();	
 		}
 		
+		Query q = em.createNativeQuery("UPDATE jugadores SET partPerdidas = (SELECT partPerdidas FROM jugadores WHERE nombre = ?1)+1 WHERE nombre = ?2", Jugador.class);
+		q.setParameter(1, jugador.getNombre());
+		q.setParameter(2, jugador.getNombre());
+		q.executeUpdate();
+		
 		for(Observer o : observers){
 			try {
 				o.perdedor(jugador);
@@ -71,6 +84,11 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	}
 	
 	private void ganador(Jugador jugador){
+		Query q = em.createNativeQuery("UPDATE jugadores SET partGanadas = (SELECT partGanadas FROM jugadores WHERE nombre = ?1)+1 WHERE nombre = ?2", Jugador.class);
+		q.setParameter(1, jugador.getNombre());
+		q.setParameter(2, jugador.getNombre());
+		q.executeUpdate();
+		
 		for(Observer o : observers){
 			try {
 				o.ganador(jugador);

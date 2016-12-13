@@ -269,7 +269,7 @@ public class TableroWindow {
 				case 1:
 					carcel = true;
 					posicion = 4;
-					updatePositions(0);		
+					updatePositions(0);	
 					break;
 				case 2:
 					cambiarDinero(this.jugador, 200);

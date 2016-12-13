@@ -4,12 +4,31 @@ import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+@Entity
+@Table(name = "jugadores")
+@NamedQuery(query = "Select e.nombre as nombre, e.password as password from Jugador e"/* where e.nombre = :nombre"*/, name = "login")
 public class Jugador implements Remote, Serializable {
+	
+	@Id
 	private String nombre;
 	private String password;
+	
+	@Transient
 	private int dinero;
 	private int partGanadas;
 	private int partPerdidas;
+	
+	public Jugador(){
+		super();
+	}
 	
 	public Jugador(String nombre, String password, int partGanadas, int partPerdidas) throws RemoteException {
 		super();
