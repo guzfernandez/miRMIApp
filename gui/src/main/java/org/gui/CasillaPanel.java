@@ -4,7 +4,6 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 import java.awt.Color;
 
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 

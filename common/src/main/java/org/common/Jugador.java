@@ -6,15 +6,11 @@ import java.rmi.RemoteException;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.NamedNativeQueries;
-import javax.persistence.NamedNativeQuery;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
 @Table(name = "jugadores")
-@NamedQuery(query = "Select e.nombre as nombre, e.password as password from Jugador e"/* where e.nombre = :nombre"*/, name = "login")
 public class Jugador implements Remote, Serializable {
 	
 	@Id
