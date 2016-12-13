@@ -14,7 +14,6 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 
 import org.common.CasillaTipo;
-import org.common.Jugada;
 import org.common.Jugador;
 import org.common.Observer;
 import org.common.PartidaController;
@@ -69,10 +68,12 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 			actualizarUI();	
 		}
 		
+		em.getTransaction().begin();
 		Query q = em.createNativeQuery("UPDATE jugadores SET partPerdidas = (SELECT partPerdidas FROM jugadores WHERE nombre = ?1)+1 WHERE nombre = ?2", Jugador.class);
 		q.setParameter(1, jugador.getNombre());
 		q.setParameter(2, jugador.getNombre());
 		q.executeUpdate();
+		em.getTransaction().commit();
 		
 		for(Observer o : observers){
 			try {
@@ -84,10 +85,12 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 	}
 	
 	private void ganador(Jugador jugador){
+		em.getTransaction().begin();
 		Query q = em.createNativeQuery("UPDATE jugadores SET partGanadas = (SELECT partGanadas FROM jugadores WHERE nombre = ?1)+1 WHERE nombre = ?2", Jugador.class);
 		q.setParameter(1, jugador.getNombre());
 		q.setParameter(2, jugador.getNombre());
 		q.executeUpdate();
+		em.getTransaction().commit();
 		
 		for(Observer o : observers){
 			try {
@@ -107,7 +110,7 @@ public class PartidaControllerImpl extends UnicastRemoteObject implements Partid
 			timer = new Timer();
 			
 		    TimerTask task = new TimerTask(){
-		        private int i = 10;
+		        private int i = 20;
 		        public void run(){
 		            if (i >= 0) {
 		            	actualizarTimer(i);
